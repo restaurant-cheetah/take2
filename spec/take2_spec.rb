@@ -57,7 +57,7 @@ RSpec.describe Take2 do
     describe '#retriable_errors' do
 
       it 'sets the :retriable_errors attribute' do
-        retriables = IOError, Faraday::ClientError
+        retriables = IOError
         klass.retriable_errors retriables
         expect(subject[:retriable]).to eql [retriables]
       end
