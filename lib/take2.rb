@@ -42,15 +42,9 @@ module Take2
             tries -= 1
             retry
           end
-        end
-        log_error e
+        end        
         raise e
       end
-    end
-
-    def log_error(error)
-      # Overrider this method in the includer
-      true
     end
     
   end
@@ -58,6 +52,7 @@ module Take2
   module ClassMethods
 
     def number_of_retries(num)
+      raise ArgumentError, 'Must be positive Integer' unless num.is_a?(Integer) && num.positive?
       self.retries = num
     end
 
@@ -66,14 +61,17 @@ module Take2
     end
 
     def retriable_condition(proc)
+      raise ArgumentError, 'Must be callable' unless proc.respond_to?(:call)
       self.retry_condition_proc = proc
     end
 
     def on_retry(proc)
+      raise ArgumentError, 'Must be callable' unless proc.respond_to?(:call)
       self.retry_proc = proc
     end
 
     def sleep_before_retry(seconds)
+      raise ArgumentError, 'Must be positive numer' unless (seconds.is_a?(Integer) || seconds.is_a?(Float)) && seconds.positive?
       self.time_to_sleep = seconds
     end
 
@@ -97,11 +95,6 @@ module Take2
     def response_status(response)
       return response.status if response.respond_to? :status
       response.status_code if response.respond_to? :status_code
-    end
-
-    def log_client_error(error, tries)
-      # Override this method in the includer
-      true
     end
 
   end
