@@ -31,7 +31,6 @@ module Take2
 
     # Yields a block and retries on retriable errors n times.
     # The raised error could be the defined retriable or it child.
-
     #
     # Example:
     #   class KatorzaService
