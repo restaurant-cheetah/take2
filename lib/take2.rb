@@ -1,3 +1,6 @@
+require 'net/http'
+
+require 'take2/version'
 require 'take2/configuration'
 
 module Take2
