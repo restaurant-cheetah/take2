@@ -8,7 +8,7 @@ RSpec.describe Take2 do
       c.retries               = 1
       c.retriable             = [Net::HTTPServerError, Net::HTTPRetriableError].freeze
       c.retry_condition_proc  = proc {false}
-      c.retry_proc            = proc {Rails.logger.info "Retry message"}
+      c.retry_proc            = proc {}
       c.time_to_sleep         = 0.5
     end
   end

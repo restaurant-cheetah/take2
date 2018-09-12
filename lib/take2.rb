@@ -49,8 +49,10 @@ module Take2
     end
 
     def log_error(error)
-      Rails.logger.warn error
+      # Overrider this method in the includer
+      true
     end
+    
   end
 
   module ClassMethods
@@ -98,7 +100,8 @@ module Take2
     end
 
     def log_client_error(error, tries)
-      Rails.logger.warn "#{self.name} - Retrying.. #{tries} of #{self.retries} (#{error})"
+      # Override this method in the includer
+      true
     end
 
   end

@@ -13,7 +13,7 @@ module Take2
         Errno::ECONNRESET,
         IOError,
        ].freeze
-      @retry_proc = proc { |error, tries| log_client_error error, tries }
+      @retry_proc = proc {}
       @retry_condition_proc = proc { false }
       @time_to_sleep = 3
       # Overwriting the defaults
@@ -33,12 +33,6 @@ module Take2
 
     def [](value)
       self.public_send(value)
-    end
-
-    private
-
-    def log_client_error(error, tries)
-      Rails.logger.warn "#{self.name} - Retrying.. #{tries} of #{self.retries} (#{error})"
     end
 
   end
