@@ -6,16 +6,12 @@ module Take2
     def initialize(options = {})
       # Defaults
       @retries = 3
-      @retriable =  [
+      @retriable = [
         Net::HTTPServerError,
         Net::HTTPServerException,
-        Net::HTTPRetriableError,
-        Timeout::Error,
+        Net::HTTPRetriableError,        
         Errno::ECONNRESET,
         IOError,
-        Faraday::ConnectionFailed,
-        HTTParty::Error,
-        Twilio::REST::RestError
        ].freeze
       @retry_proc = proc { |error, tries| log_client_error error, tries }
       @retry_condition_proc = proc { false }
