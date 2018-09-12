@@ -29,6 +29,10 @@ module Take2
 
   module InstanceMethods
 
+    # Backward compatibility
+    alias_method :call_api_with_retry, :call_with_retry
+    def call_api_with_retry; end
+
     # Yields a block and retries on retriable errors n times.
     # The raised error could be the defined retriable or it child.
     #
