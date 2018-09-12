@@ -83,7 +83,7 @@ module Take2
     attr_accessor(*Take2::Configuration::CONFIG_ATTRS)
 
     def set_defaults
-      config = Retriable.configuration.to_hash
+      config = Take2.configuration.to_hash
       Take2::Configuration::CONFIG_ATTRS.each do |attr|
         instance_variable_set("@#{attr}", config[attr])
       end
