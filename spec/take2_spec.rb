@@ -124,10 +124,10 @@ RSpec.describe Take2 do
         end.to change{@tries}.from(0).to(1)
       end
 
-      it 'logs the error' do
-        expect(object).to receive(:log_error).with(error)
-        object.call_api_with_retry { wrath_the_gods_with error } rescue nil
-      end
+      # it 'logs the error' do
+      #   expect(object).to receive(:log_error).with(error)
+      #   object.call_api_with_retry { wrath_the_gods_with error } rescue nil
+      # end
 
     end
 
@@ -158,10 +158,10 @@ RSpec.describe Take2 do
         object.call_api_with_retry { wrath_the_gods_with retriable_error } rescue nil
       end
 
-      it 'logs the error' do
-        expect(object).to receive(:log_error).with(retriable_error)
-        object.call_api_with_retry { wrath_the_gods_with retriable_error } rescue nil
-      end
+      # it 'logs the error' do
+      #   expect(object).to receive(:log_error).with(retriable_error)
+      #   object.call_api_with_retry { wrath_the_gods_with retriable_error } rescue nil
+      # end
 
       it 're raises the original error' do
         expect do
