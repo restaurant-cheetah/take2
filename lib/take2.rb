@@ -29,10 +29,6 @@ module Take2
 
   module InstanceMethods
 
-    # Backward compatibility
-    alias_method :call_api_with_retry, :call_with_retry
-    def call_api_with_retry; end
-
     # Yields a block and retries on retriable errors n times.
     # The raised error could be the defined retriable or it child.
     #
@@ -49,7 +45,7 @@ module Take2
     #     sleep_before_retry 3
     #
     #     def give_me_food
-    #       call_with_retry do
+    #       call_api_with_retry do
     #         # Some logic that might raise..
     #         # If it will raise retriable, magic happens.
     #         # If not the original error re raised
@@ -57,7 +53,7 @@ module Take2
     #     end
     #
     #   end
-    def call_with_retry
+    def call_api_with_retry
       config = self.class.retriable_configuration
       tries ||= config[:retries]
       begin
