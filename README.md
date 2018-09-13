@@ -1,17 +1,17 @@
 ## Take2
-#  
+
 Define rules for retrying behavior.  
 Yield block of code into the public api of the take2.  
 Things getting take two :)
 
 ## Install
-#
-```
+
+```ruby
 gem install take2
 ```
 ## Examples
-#
-```
+
+```ruby
 class KratosService
   include Take2
 
@@ -62,8 +62,8 @@ KratosService.retriable_configuration
 
 ## Configurations
 #### could be implemented as rails initializer
-#
-```
+
+```ruby
 # config/initializers/take2.rb
 
 Take2.configure do |config|
