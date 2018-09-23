@@ -6,3 +6,8 @@ gem "rake"
 group :test do
   gem "rspec", "3.8.0"
 end
+
+group :development, :test do
+  gem 'pry'
+  gem 'pry-nav'
+end
