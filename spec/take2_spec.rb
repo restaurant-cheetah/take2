@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'take2'
 
 RSpec.describe Take2 do
 
