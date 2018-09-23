@@ -17,10 +17,18 @@ module Take2
       @retry_condition_proc = proc { false }
       @time_to_sleep = 3
       # Overwriting the defaults
-      options.each do |k, v|
+      options.each do |k, v|        
         raise ArgumentError, "#{k} is not a valid configuration"  unless CONFIG_ATTRS.include?(k)
-        raise ArgumentError, "#{k} must be positive integer"      unless v.is_a?(Integer) && v.positive?
-        raise ArgumentError, "#{k} must be positive number"       unless (v.is_a?(Integer) || v.is_a?(Float)) && v.positive?
+        case k
+          when :retries
+            raise ArgumentError, "#{k} must be positive integer" unless v.is_a?(Integer) && v.positive?
+          when :time_to_sleep  
+            raise ArgumentError, "#{k} must be positive number" unless (v.is_a?(Integer) || v.is_a?(Float)) && v >= 0
+          when :retriable
+            raise ArgumentError, "#{k} must be array of retriable errors" unless v.is_a?(Array)
+          when :retry_proc, :retry_condition_proc
+            raise ArgumentError, "#{k} must be Proc" unless v.is_a?(Proc)
+        end
         instance_variable_set(:"@#{k}", v)
       end
     end
