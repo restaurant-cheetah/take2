@@ -42,6 +42,14 @@ class KratosService
     end
   end
 
+  # Pass custom options per method call
+  # The class defaults will not be overwritten
+  def kill_baldur
+    call_api_with_retry(retries: 2, retriable: [IOError], retry_proc: proc {}, retry_condition_proc: proc {}, time_to_sleep: 1.11) do
+      # Some logic that might raise..
+    end
+  end
+
 end  
 
 KratosService.new.call_boy
