@@ -1,5 +1,8 @@
 ## Take2
-
+[![CircleCI](https://circleci.com/gh/restaurant-cheetah/take2/tree/master.svg?style=shield)](https://circleci.com/gh/restaurant-cheetah/take2/tree/master)
+![Gem](https://img.shields.io/gem/dt/take2.svg)
+![GitHub last commit](https://img.shields.io/github/last-commit/restaurant-cheetah/take2.svg)
+![Gem](https://img.shields.io/gem/v/take2.svg)  
 Define rules for retrying behavior.  
 Yield block of code into the public api of the take2.  
 Things getting take two :)
@@ -41,12 +44,12 @@ class KratosService
 
 end  
 
-KratosService.new.call_boy =>
-KratosService - Retrying.. 3 of 3 (Release the Kraken...many times!!)
-KratosService - Retrying.. 2 of 3 (Release the Kraken...many times!!)
-KratosService - Retrying.. 1 of 3 (Release the Kraken...many times!!)
+KratosService.new.call_boy
+#=> KratosService - Retrying.. 3 of 3 (Release the Kraken...many times!!)
+#=> KratosService - Retrying.. 2 of 3 (Release the Kraken...many times!!)
+#=> KratosService - Retrying.. 1 of 3 (Release the Kraken...many times!!)
 # After the retrying is done, original error re-raised  
-Net::HTTPRetriableError: Release the Kraken...many times!!
+#=> Net::HTTPRetriableError: Release the Kraken...many times!!
 
 # Not wrapping with method
 KratosService.new.call_api_with_retry { 1 / 0 }
