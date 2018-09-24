@@ -231,6 +231,44 @@ RSpec.describe Take2 do
 
     end
 
+    context 'with custom options' do
+
+      let(:retriable_error)     { Net::HTTPRetriableError.new 'Release the Kraken...many times!!', nil }
+      let(:new_retriable_error) { IOError.new 'You shall not PASS!' }
+
+      before(:each) { @tries = 0 }
+        
+      it 'overwrites the :retries' do
+        expect do
+          object.call_api_with_retry(retries: 3) { wrath_the_gods_with retriable_error } rescue nil
+        end.to change { @tries }.from(0).to(4)
+      end
+
+      it 'overwrites the :retry_proc' do
+        new_proc = proc { 1**1 }
+        expect(new_proc).to receive(:call).exactly(klass.retriable_configuration[:retries])
+        object.call_api_with_retry(retry_proc: new_proc) { wrath_the_gods_with retriable_error } rescue nil          
+      end
+
+      it 'overwrites the :retry_condition_proc' do
+        new_proc = proc { true }
+        expect(new_proc).to receive(:call).exactly(klass.retriable_configuration[:retries])
+        object.call_api_with_retry(retry_condition_proc: new_proc) { wrath_the_gods_with retriable_error } rescue nil          
+      end
+
+      it 'overwrites the :time_to_sleep' do
+        allow_any_instance_of(Object).to receive(:sleep).with(1.66)
+        object.call_api_with_retry(time_to_sleep: 1.66) { wrath_the_gods_with retriable_error } rescue nil
+      end
+
+      it 'overwrites the :retriable' do
+        expect do                
+          object.call_api_with_retry(retriable: [new_retriable_error]) { wrath_the_gods_with retriable_error } rescue nil
+        end.to change { @tries }.from(0).to(1)
+      end
+
+    end
+
   end
 
 end
