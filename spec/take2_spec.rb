@@ -40,54 +40,115 @@ RSpec.describe Take2 do
 
   end
 
-  describe 'included helpers' do
+  describe 'included class helpers' do
 
     subject { klass.retriable_configuration }
 
-    describe '#number_of_retries' do
+    describe '.number_of_retries' do
 
-      it 'sets the :retries attribute' do
-        klass.number_of_retries 1
-        expect(subject[:retries]).to eql 1
+      context 'with valid argument' do
+
+        it 'sets the :retries attribute' do
+          klass.number_of_retries 1
+          expect(subject[:retries]).to eql 1
+        end
+
+      end
+
+      context 'with invalid argument' do
+
+        it 'raises ArgumentError' do
+          expect { klass.number_of_retries 0 }.to raise_error ArgumentError
+        end
+
       end
 
     end
 
-    describe '#retriable_errors' do
+    describe '.retriable_errors' do
 
-      it 'sets the :retriable_errors attribute' do
-        retriables = IOError
-        klass.retriable_errors retriables
-        expect(subject[:retriable]).to eql [retriables]
+      context 'with valid argument' do
+
+        it 'sets the :retriable_errors attribute' do
+          retriables = IOError
+          klass.retriable_errors retriables
+          expect(subject[:retriable]).to eql [retriables]
+        end
+
+      end
+
+      context 'with invalid argument' do
+
+        it 'raises ArgumentError' do
+          class Klass; end
+          expect { klass.retriable_errors Klass }.to raise_error ArgumentError
+        end
+
       end
 
     end
 
-    describe '#retriable_condition' do
+    describe '.retriable_condition' do
 
-      it 'sets the :retriable_condition attribute' do
-        retriable_proc = proc { 'Ho-Ho-Ho' }
-        klass.retriable_condition retriable_proc
-        expect(subject[:retry_condition_proc].call).to eql retriable_proc.call
+      context 'with valid argument' do
+
+        it 'sets the :retriable_condition attribute' do
+          retriable_proc = proc { 'Ho-Ho-Ho' }
+          klass.retriable_condition retriable_proc
+          expect(subject[:retry_condition_proc].call).to eql retriable_proc.call
+        end
+
+      end
+
+      context 'with invalid argument' do
+
+         it 'raises ArgumentError' do
+          expect { klass.retriable_condition Class.new }.to raise_error ArgumentError
+         end
+
       end
 
     end
 
-    describe '#on_retry' do
+    describe '.on_retry' do
 
-      it 'sets the :on_retry attribute' do
-        retry_proc = proc { |el| el }
-        klass.on_retry retry_proc
-        expect(subject[:retry_proc].call).to eql retry_proc.call
+      context 'with valid argument' do
+
+        it 'sets the :on_retry attribute' do
+          retry_proc = proc { |el| el }
+          klass.on_retry retry_proc
+          expect(subject[:retry_proc].call).to eql retry_proc.call
+        end
+
+      end  
+
+      context 'with invalid argument' do
+
+        it 'raises ArgumentError' do
+          expect { klass.on_retry Class.new }.to raise_error ArgumentError
+        end
+
       end
 
     end
 
-    describe '#sleep_before_retry' do
+    describe '.sleep_before_retry' do
 
-      it 'sets the :sleep_before_retry attribute' do
-        klass.sleep_before_retry 3.5
-        expect(subject[:time_to_sleep]).to eql 3.5
+      context 'with valid argument' do
+
+        it 'sets the :sleep_before_retry attribute' do
+          klass.sleep_before_retry 3.5
+          expect(subject[:time_to_sleep]).to eql 3.5
+        end
+
+      end
+      
+      context 'with invalid argument' do
+
+        it 'raises ArgumentError' do
+          expect { klass.sleep_before_retry -1 }.to raise_error ArgumentError
+        end
+
       end
 
     end
@@ -139,7 +200,7 @@ RSpec.describe Take2 do
       it 'retries correct number of times' do
         expect do
           object.call_api_with_retry { wrath_the_gods_with retriable_error } rescue nil
-        end.to change{@tries}.from(0).to(klass.retriable_configuration[:retries] + 1)
+        end.to change {@tries}.from(0).to(klass.retriable_configuration[:retries] + 1)
       end
 
       it 'calls the retry proc' do
