@@ -33,7 +33,7 @@ module Take2
     # The raised error could be the defined retriable or it child.
     #
     # Example:
-    #   class KatorzaService
+    #   class PizzaService
     #     include Take2
     #
     #     number_of_retries 3
@@ -75,12 +75,12 @@ module Take2
     # Sets number of retries.
     #
     # Example:
-    #   class KatorzaService
+    #   class PizzaService
     #     include Take2
     #     number_of_retries 3
     #   end
     # Arguments:
-    #   num: Positive integer
+    #   num: integer
     def number_of_retries(num)
       raise ArgumentError, 'Must be positive Integer' unless num.is_a?(Integer) && num.positive?
       self.retries = num
@@ -89,13 +89,14 @@ module Take2
     # Sets list of errors on which the block will retry.
     #
     # Example:
-    #   class KatorzaService
+    #   class PizzaService
     #     include Take2
     #     retriable_errors Net::HTTPRetriableError, Errno::ECONNRESET
     #   end
     # Arguments:
     #   errors: List of retiable errors
     def retriable_errors(*errors)
+      raise ArgumentError, 'All retriable errors must be StandardError decendants' unless errors.all? { |e| e <= StandardError }
       self.retriable = errors
     end
 
@@ -103,12 +104,12 @@ module Take2
     # If set, it MUST result to +false+ with number left retries greater that zero in order to retry.
     #
     # Example:
-    #   class KatorzaService
+    #   class PizzaService
     #     include Take2
     #     retriable_condition proc { |error| error.response.status_code < 500 }
     #   end
     # Arguments:
-    #   proc: Proc. The +proc+ called by default with the raised error argument
+    #   proc: Proc. The proc called by default with the raised error argument
     def retriable_condition(proc)
       raise ArgumentError, 'Must be callable' unless proc.respond_to?(:call)
       self.retry_condition_proc = proc
@@ -117,12 +118,12 @@ module Take2
     # Defines a proc that is called *before* retry attempt. 
     #
     # Example:
-    #   class KatorzaService
+    #   class PizzaService
     #     include Take2
     #     on_retry proc { |error, tries| puts "Retrying.. #{tries} of #{self.class.retriable_configuration[:retries]}" }
     #   end
     # Arguments:
-    #   proc: Proc. The +proc+ called by default with the raised error and number of left retries.
+    #   proc: Proc. The proc called by default with the raised error and number of left retries.
     def on_retry(proc)
       raise ArgumentError, 'Must be callable' unless proc.respond_to?(:call)
       self.retry_proc = proc
@@ -131,12 +132,12 @@ module Take2
     # Sets number of seconds to sleep before next retry.
     #
     # Example:
-    #   class KatorzaService
+    #   class PizzaService
     #     include Take2
     #     sleep_before_retry 1.5
     #   end
     # Arguments:
-    #   seconds: Positive number.
+    #   seconds: number
     def sleep_before_retry(seconds)
       raise ArgumentError, 'Must be positive numer' unless (seconds.is_a?(Integer) || seconds.is_a?(Float)) && seconds.positive?
       self.time_to_sleep = seconds
