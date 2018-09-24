@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.email       = ["evnomadx@gmail.com"]
   s.homepage    = "https://github.com/restaurant-cheetah/take2"
   s.summary     = "Provides Take2 for your APIs calls"
-  s.description = "Easily define Take2 / retry behavior for API wrappers, service objects or a single method."
+  s.description = "Retry API calls, methods or blocks of code. Define take2 retry behavior or use defaults and you good to go."
   s.post_install_message = "Getting Take2 is dead easy!"
 
   all_files = `git ls-files`.split("\n")

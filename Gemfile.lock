@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    take2 (0.0.2)
+    take2 (0.0.3)
 
 GEM
   remote: http://rubygems.org/
