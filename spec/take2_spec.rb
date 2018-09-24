@@ -267,6 +267,12 @@ RSpec.describe Take2 do
         end.to change { @tries }.from(0).to(1)
       end
 
+      it 'raises ArgumentError if there are invalid keys' do
+        expect do                
+          object.call_api_with_retry(invalid_key: :nope) { wrath_the_gods_with retriable_error }
+        end.to raise_error ArgumentError
+      end
+
     end
 
   end
