@@ -23,6 +23,10 @@ module Take2
     @configuration = Configuration.new(options)
   end
 
+  def self.local_defaults(options)
+    configuration.validate_options(options)
+  end
+
   def self.configure
     yield(configuration) if block_given?
   end
@@ -51,8 +55,9 @@ module Take2
     #     end
     #
     #   end
-    def call_api_with_retry
+    def call_api_with_retry(options = {})        
       config = self.class.retriable_configuration
+      config.merge! Take2.local_defaults(options) unless options.empty?
       tries ||= config[:retries]
       begin
         yield
