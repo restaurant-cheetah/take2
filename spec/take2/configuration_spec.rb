@@ -11,8 +11,7 @@ RSpec.describe Take2::Configuration do
     end
 
     it 'has correct default retriable errors array' do
-      expect(default.retriable).to eql [
-        Net::HTTPServerError,
+      expect(default.retriable).to eql [      
         Net::HTTPServerException,
         Net::HTTPRetriableError,        
         Errno::ECONNRESET,

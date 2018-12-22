@@ -5,7 +5,7 @@ RSpec.describe Take2 do
   let!(:config) do
     Take2.configure do |c|
       c.retries               = 1
-      c.retriable             = [Net::HTTPServerError, Net::HTTPRetriableError].freeze
+      c.retriable             = [Net::HTTPServerException, Net::HTTPRetriableError].freeze
       c.retry_condition_proc  = proc {false}
       c.retry_proc            = proc {}
       c.time_to_sleep         = 0.5
