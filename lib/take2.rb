@@ -41,7 +41,7 @@ module Take2
     #     include Take2
     #
     #     number_of_retries 3
-    #     retriable_errors Net::HTTPRetriableError, Net::HTTPServerError
+    #     retriable_errors Net::HTTPRetriableError
     #     retriable_condition proc { |error| response_status(error.response) < 500 }
     #     on_retry proc { |error, tries| puts "#{self.name} - Retrying.. #{tries} of #{self.retriable_configuration[:retries]} (#{error})" }    
     #     sleep_before_retry 3

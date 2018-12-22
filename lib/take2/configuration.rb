@@ -7,7 +7,6 @@ module Take2
       # Defaults
       @retries = 3
       @retriable = [
-        Net::HTTPServerError,
         Net::HTTPServerException,
         Net::HTTPRetriableError,        
         Errno::ECONNRESET,

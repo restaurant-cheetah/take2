@@ -22,7 +22,7 @@ class KratosService
   number_of_retries 3
   
   # Could be configured globally or on class level.
-  retriable_errors Net::HTTPRetriableError, Net::HTTPServerError
+  retriable_errors Net::HTTPRetriableError, Net::HTTPServerException
 
   # Retry unless the response status is 5xx. The implementation is dependent of the http lib in use.
   retriable_condition proc { |error| error.response.code < 500 }
@@ -79,8 +79,7 @@ KratosService.retriable_configuration
 
 Take2.configure do |config|
   config.retries    = 3
-  config.retriable  = [
-      Net::HTTPServerError,
+  config.retriable  = [      
       Net::HTTPServerException,
       Net::HTTPRetriableError,      
       Errno::ECONNRESET,
