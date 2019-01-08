@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    take2 (0.0.3)
+    take2 (0.0.4)
 
 GEM
   remote: http://rubygems.org/
@@ -42,4 +42,4 @@ DEPENDENCIES
   take2!
 
 BUNDLED WITH
-   1.16.4
+   1.16.6
