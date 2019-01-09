@@ -4,7 +4,6 @@ AllCops:
     - take2.gemspec
     - Rakefile
   DisabledByDefault: true
-  StyleGuideBaseURL: https://shopify.github.io/ruby-style-guide/
 
 Layout/AccessModifierIndentation:
   EnforcedStyle: indent
