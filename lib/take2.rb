@@ -29,7 +29,7 @@ module Take2
     configuration.validate_options(options)
   end
 
-  def self.configure    
+  def self.configure
     yield(configuration) if block_given?
   end
 
@@ -165,7 +165,7 @@ module Take2
 
     attr_accessor(*Take2::Configuration::CONFIG_ATTRS)
 
-    def set_defaults    
+    def set_defaults
       config = Take2.configuration.to_hash
       Take2::Configuration::CONFIG_ATTRS.each do |attr|
         instance_variable_set("@#{attr}", config[attr])
@@ -178,6 +178,3 @@ module Take2
     end
   end
 end
-
-
-
