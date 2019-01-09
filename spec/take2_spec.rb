@@ -146,9 +146,9 @@ RSpec.describe(Take2) do
       it 'is not retried' do
         expect do
           object.call_api_with_retry { wrath_the_gods_with error }
-        rescue
-          nil
         end.to(change { @tries }.from(0).to(1))
+      rescue
+        nil
       end
 
       # it 'logs the error' do
@@ -165,9 +165,9 @@ RSpec.describe(Take2) do
       it 'retries correct number of times' do
         expect do
           object.call_api_with_retry { wrath_the_gods_with retriable_error }
-        rescue
-          nil
         end.to(change { @tries }.from(0).to(klass.retriable_configuration[:retries] + 1))
+      rescue
+        nil
       end
 
       it 'calls the retry proc' do
@@ -222,9 +222,9 @@ RSpec.describe(Take2) do
       it 'overwrites the :retries' do
         expect do
           object.call_api_with_retry(retries: 3) { wrath_the_gods_with retriable_error }
-        rescue
-          nil
         end.to(change { @tries }.from(0).to(4))
+      rescue
+        nil
       end
 
       it 'overwrites the :retry_proc' do
@@ -259,9 +259,9 @@ RSpec.describe(Take2) do
       it 'overwrites the :retriable' do
         expect do
           object.call_api_with_retry(retriable: [new_retriable_error]) { wrath_the_gods_with retriable_error }
-        rescue
-          nil
         end.to(change { @tries }.from(0).to(1))
+      rescue
+        nil
       end
 
       it 'raises ArgumentError if there are invalid keys' do
