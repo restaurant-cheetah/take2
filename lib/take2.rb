@@ -14,7 +14,7 @@ module Take2
   end
 
   class << self
-    attr_accessor :configuration
+    # attr_accessor :configuration
   end
 
   def self.configuration
@@ -44,9 +44,9 @@ module Take2
     #     number_of_retries 3
     #     retriable_errors Net::HTTPRetriableError
     #     retriable_condition proc { |error| response_status(error.response) < 500 }
-    #     on_retry proc do |error, tries|
+    #     on_retry proc { |error, tries|
     #       puts "#{self.name} - Retrying.. #{tries} of #{self.retriable_configuration[:retries]} (#{error})"
-    #     end
+    #     }
     #     sleep_before_retry 3
     #
     #     def give_me_food
