@@ -14,7 +14,7 @@ module Take2
   end
 
   class << self
-    # attr_accessor :configuration
+    attr_accessor :configuration
   end
 
   def self.configuration
