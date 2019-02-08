@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 source "http://rubygems.org"
 gemspec
 
@@ -10,4 +12,5 @@ end
 group :development, :test do
   gem 'pry'
   gem 'pry-nav'
+  gem 'rubocop'
 end

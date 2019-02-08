@@ -1,14 +1,16 @@
+# frozen_string_literal: true
+
 require 'net/http'
 
 require 'take2/version'
+
 require 'take2/configuration'
 
 module Take2
-
   def self.included(base)
-    base.extend ClassMethods
-    base.send :set_defaults
-    base.send :include, InstanceMethods
+    base.extend(ClassMethods)
+    base.send(:set_defaults)
+    base.send(:include, InstanceMethods)
   end
 
   class << self
@@ -32,7 +34,6 @@ module Take2
   end
 
   module InstanceMethods
-
     # Yields a block and retries on retriable errors n times.
     # The raised error could be the defined retriable or it child.
     #
@@ -43,7 +44,9 @@ module Take2
     #     number_of_retries 3
     #     retriable_errors Net::HTTPRetriableError
     #     retriable_condition proc { |error| response_status(error.response) < 500 }
-    #     on_retry proc { |error, tries| puts "#{self.name} - Retrying.. #{tries} of #{self.retriable_configuration[:retries]} (#{error})" }    
+    #     on_retry proc { |error, tries|
+    #       puts "#{self.name} - Retrying.. #{tries} of #{self.retriable_configuration[:retries]} (#{error})"
+    #     }
     #     sleep_before_retry 3
     #
     #     def give_me_food
@@ -55,25 +58,25 @@ module Take2
     #     end
     #
     #   end
-    def call_api_with_retry(options = {})        
+    def call_api_with_retry(options = {})
       config = self.class.retriable_configuration
-      config.merge! Take2.local_defaults(options) unless options.empty?
+      config.merge!(Take2.local_defaults(options)) unless options.empty?
       tries ||= config[:retries]
       begin
         yield
       rescue => e
-        if config[:retriable].map {|klass| e.class <= klass }.any?
+        if config[:retriable].map { |klass| e.class <= klass }.any?
           unless tries.zero? || config[:retry_condition_proc]&.call(e)
             config[:retry_proc]&.call(e, tries)
-            sleep(config[:time_to_sleep]) if config[:time_to_sleep]
+            sleep(config[:time_to_sleep].to_f)
             tries -= 1
             retry
           end
-        end        
+        end
         raise e
       end
     end
-    
+    alias_method :with_retry, :call_api_with_retry
   end
 
   module ClassMethods
@@ -101,11 +104,12 @@ module Take2
     # Arguments:
     #   errors: List of retiable errors
     def retriable_errors(*errors)
-      raise ArgumentError, 'All retriable errors must be StandardError decendants' unless errors.all? { |e| e <= StandardError }
+      message = 'All retriable errors must be StandardError decendants'
+      raise ArgumentError, message unless errors.all? { |e| e <= StandardError }
       self.retriable = errors
     end
 
-    # Sets condition for retry attempt. 
+    # Sets condition for retry attempt.
     # If set, it MUST result to +false+ with number left retries greater that zero in order to retry.
     #
     # Example:
@@ -120,7 +124,7 @@ module Take2
       self.retry_condition_proc = proc
     end
 
-    # Defines a proc that is called *before* retry attempt. 
+    # Defines a proc that is called *before* retry attempt.
     #
     # Example:
     #   class PizzaService
@@ -144,7 +148,9 @@ module Take2
     # Arguments:
     #   seconds: number
     def sleep_before_retry(seconds)
-      raise ArgumentError, 'Must be positive numer' unless (seconds.is_a?(Integer) || seconds.is_a?(Float)) && seconds.positive?
+      unless (seconds.is_a?(Integer) || seconds.is_a?(Float)) && seconds.positive?
+        raise ArgumentError, 'Must be positive numer'
+      end
       self.time_to_sleep = seconds
     end
 
@@ -167,10 +173,8 @@ module Take2
     end
 
     def response_status(response)
-      return response.status if response.respond_to? :status
-      response.status_code if response.respond_to? :status_code
+      return response.status if response.respond_to?(:status)
+      response.status_code if response.respond_to?(:status_code)
     end
-
   end
-
 end
