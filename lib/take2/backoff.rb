@@ -2,8 +2,8 @@
 
 module Take2
   class Backoff
-    BACKOFF_ATTRS = [:type, :start, :retries, :factor, :intervals].freeze
-    attr_reader(*BACKOFF_ATTRS)
+    attr_reader :type, :start, :retries, :factor, :intervals
+
     def initialize(type, start = 1, factor = 1, retries = 10)
       @type = type
       @start = start.to_i
