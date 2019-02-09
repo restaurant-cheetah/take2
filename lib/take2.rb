@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 require 'net/http'
-
 require 'take2/version'
-
 require 'take2/configuration'
 
 module Take2
@@ -17,7 +15,7 @@ module Take2
     attr_accessor :configuration
   end
 
-  def self.configuration
+  def self.config
     @configuration ||= Configuration.new
   end
 
@@ -30,7 +28,7 @@ module Take2
   end
 
   def self.configure
-    yield(configuration) if block_given?
+    yield(config) if block_given?
   end
 
   module InstanceMethods
@@ -47,7 +45,7 @@ module Take2
     #     on_retry proc { |error, tries|
     #       puts "#{self.name} - Retrying.. #{tries} of #{self.retriable_configuration[:retries]} (#{error})"
     #     }
-    #     sleep_before_retry 3
+    #     backoff_strategy type: :exponential, start: 3
     #
     #     def give_me_food
     #       call_api_with_retry do
@@ -68,7 +66,7 @@ module Take2
         if config[:retriable].map { |klass| e.class <= klass }.any?
           unless tries.zero? || config[:retry_condition_proc]&.call(e)
             config[:retry_proc]&.call(e, tries)
-            sleep(config[:time_to_sleep].to_f)
+            rest(config, tries)
             tries -= 1
             retry
           end
@@ -77,6 +75,21 @@ module Take2
       end
     end
     alias_method :with_retry, :call_api_with_retry
+
+    private
+
+    def rest(config, tries)
+      seconds = if config[:time_to_sleep].to_f > 0
+        config[:time_to_sleep].to_f
+      else
+        next_interval(config[:backoff_intervals], config[:retries], tries)
+      end
+      sleep(seconds)
+    end
+
+    def next_interval(intervals, retries, current)
+      intervals[retries - current]
+    end
   end
 
   module ClassMethods
@@ -138,20 +151,28 @@ module Take2
       self.retry_proc = proc
     end
 
-    # Sets number of seconds to sleep before next retry.
-    #
-    # Example:
-    #   class PizzaService
-    #     include Take2
-    #     sleep_before_retry 1.5
-    #   end
-    # Arguments:
-    #   seconds: number
     def sleep_before_retry(seconds)
       unless (seconds.is_a?(Integer) || seconds.is_a?(Float)) && seconds.positive?
         raise ArgumentError, 'Must be positive numer'
       end
+      puts "DEPRECATION MESSAGE - The sleep_before_retry method is softly deprecated in favor of backoff_stategy \r
+       where the time to sleep is a starting point on the backoff intervals. Please implement it instead."
       self.time_to_sleep = seconds
+    end
+
+    # Sets the backoff strategy
+    #
+    # Example:
+    #   class PizzaService
+    #     include Take2
+    #     backoff_strategy type: :exponential, start: 3
+    #   end
+    # Arguments:
+    #   hash: object
+    def backoff_strategy(options)
+      available_types = [:constant, :linear, :fibonacci, :exponential]
+      raise ArgumentError, 'Incorrect backoff type' unless available_types.include?(options[:type])
+      self.backoff_intervals = Backoff.new(options[:type], options[:start]).intervals
     end
 
     # Exposes current class configuration
