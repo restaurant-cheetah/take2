@@ -30,7 +30,12 @@ class KratosService
   # Defines callable code to run before next retry. Could be an out put to some logger.
   on_retry proc { |error, tries| puts "#{self.name} - Retrying.. #{tries} of #{self.retriable_configuration[:retries]} (#{error})" }
        
-  sleep_before_retry 3.3
+  # The available strategies are: 
+  # type :constant, start: 2 => [2, 2, 2, 2 ... ]
+  # type :linear, start: 3, factor: 2 => [3, 6, 12, 24 ... ]
+  # type :fibonacci, start: 2 => [2, 3, 5, 8, 13 ... ]
+  # type :exponential, start: 3 => [3, 7, 12, 28, 47 ... ]    
+  backoff_strategy type: :fibonacci, start: 3
 
   def call_boy
     call_api_with_retry do
@@ -45,7 +50,7 @@ class KratosService
   # Pass custom options per method call
   # The class defaults will not be overwritten
   def kill_baldur
-    call_api_with_retry(retries: 2, retriable: [IOError], retry_proc: proc {}, retry_condition_proc: proc {}, time_to_sleep: 1.11) do
+    call_api_with_retry(retries: 2, retriable: [IOError], retry_proc: proc {}, retry_condition_proc: proc {}) do
       # Some logic that might raise..
     end
   end
@@ -88,5 +93,6 @@ Take2.configure do |config|
   config.retry_condition_proc = proc {false}
   config.time_to_sleep        = nil
   config.retry_proc           = proc {Rails.logger.info "Retry message"}
+  config.backoff_intervals    = Take2::Backoff.new(:linear, 1).intervals
 end
 ```
