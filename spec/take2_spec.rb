@@ -9,7 +9,8 @@ RSpec.describe(Take2) do
       c.retriable             = [Net::HTTPServerException, Net::HTTPRetriableError].freeze
       c.retry_condition_proc  = proc { false }
       c.retry_proc            = proc {}
-      c.time_to_sleep         = 0.5
+      c.time_to_sleep         = 0
+      c.backoff_intervals     = Take2::Backoff.new(:linear, 1).intervals
     end
   end
   let(:klass)   { Class.new { include Take2 } }
@@ -36,6 +37,10 @@ RSpec.describe(Take2) do
 
     it 'has a default value for :time_to_sleep' do
       expect(subject[:time_to_sleep]).to(eql(described_class.configuration[:time_to_sleep]))
+    end
+
+    it 'has a default value for :backoff_intervals' do
+      expect(subject[:backoff_intervals]).to eql((1..10).to_a)
     end
   end
 
@@ -120,6 +125,20 @@ RSpec.describe(Take2) do
         end
       end
     end
+
+    describe '.backoff_setup' do
+      context 'with valid arguments' do
+        it 'sets the backoff_intervals' do
+          klass.backoff_strategy(type: :fibonacci, start: 3)
+          expect(subject[:backoff_intervals]).to eql([3, 5, 8, 13, 21, 34, 55, 89, 144, 233])
+        end
+      end
+      context 'with invalid backoff type' do
+        it 'raises ArgumentError' do
+          expect { klass.backoff_strategy(type: :not_real, start: 3) }.to(raise_error(ArgumentError))
+        end
+      end
+    end
   end
 
   describe '.call_api_with_retry' do
@@ -150,11 +169,6 @@ RSpec.describe(Take2) do
       rescue
         nil
       end
-
-      # it 'logs the error' do
-      #   expect(object).to receive(:log_error).with(error)
-      #   object.call_api_with_retry { wrath_the_gods_with error } rescue nil
-      # end
     end
 
     context 'when raised with retriable error' do
@@ -192,18 +206,13 @@ RSpec.describe(Take2) do
         end
       end
 
-      it 'sleeps the correct amount of time' do
-        allow_any_instance_of(Object).to(receive(:sleep).with(klass.retriable_configuration[:time_to_sleep]))
-        begin
-          object.call_api_with_retry { wrath_the_gods_with retriable_error }
-        rescue
-          nil
-        end
-      end
-
-      # it 'logs the error' do
-      #   expect(object).to receive(:log_error).with(retriable_error)
-      #   object.call_api_with_retry { wrath_the_gods_with retriable_error } rescue nil
+      # it 'sleeps the correct amount of time' do
+      #   allow_any_instance_of(Object).to(receive(:sleep).with(klass.retriable_configuration[:time_to_sleep]))
+      #   begin
+      #     object.call_api_with_retry { wrath_the_gods_with retriable_error }
+      #   rescue
+      #     nil
+      #   end
       # end
 
       it 're raises the original error' do
@@ -247,14 +256,14 @@ RSpec.describe(Take2) do
         end
       end
 
-      it 'overwrites the :time_to_sleep' do
-        allow_any_instance_of(Object).to(receive(:sleep).with(1.66))
-        begin
-          object.call_api_with_retry(time_to_sleep: 1.66) { wrath_the_gods_with retriable_error }
-        rescue
-          nil
-        end
-      end
+      # it 'overwrites the :time_to_sleep' do
+      #   allow_any_instance_of(Object).to(receive(:sleep).with(1.66))
+      #   begin
+      #     object.call_api_with_retry(time_to_sleep: 1.66) { wrath_the_gods_with retriable_error }
+      #   rescue
+      #     nil
+      #   end
+      # end
 
       it 'overwrites the :retriable' do
         expect do
