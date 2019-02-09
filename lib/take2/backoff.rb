@@ -2,10 +2,11 @@
 
 module Take2
   class Backoff
-    attr_reader :type, :start, :retries, :factor, :intervals
+    BACKOFF_ATTRS = [:type, :start, :retries, :factor, :intervals].freeze
+    attr_reader(*BACKOFF_ATTRS)
     def initialize(type, start = 1, factor = 1, retries = 10)
       @type = type
-      @start = start
+      @start = start.to_i
       @retries = retries
       @factor = factor
       @intervals = intervals_table
@@ -17,11 +18,15 @@ module Take2
       send(type)
     end
 
+    def constant
+      Array.new(retries, start)
+    end
+
     def linear
       (start...(retries + start)).map { |i| i * factor }
     end
 
-    def fibonachi
+    def fibonacci
       (1..20).map { |i| fibo(i) }.partition { |x| x >= start }.first.take(retries)
     end
 
