@@ -30,7 +30,11 @@ RSpec.describe(Take2::Configuration) do
     end
 
     it 'has correct default value for time_to_sleep' do
-      expect(default.time_to_sleep).to(eql(3))
+      expect(default.time_to_sleep).to(eql(0))
+    end
+
+    it 'has correct default value for backoff_intervals' do
+      expect(default.backoff_intervals).to eql Array.new(10, 3)
     end
   end
 
@@ -43,6 +47,7 @@ RSpec.describe(Take2::Configuration) do
           retry_condition_proc: proc { true },
           retry_proc: proc { 2 * 2 },
           time_to_sleep: 0,
+          backoff_setup: { type: :linear, start: 3 }
         }
       end
 
@@ -56,6 +61,14 @@ RSpec.describe(Take2::Configuration) do
             expect(new_configuration[key]).to(eql(new_configs_hash[key]))
           end
         end
+      end
+
+      it 'sets the backoff_intervals correctly' do
+        expect(new_configuration[:backoff_intervals])
+          .to eql(Take2::Backoff.new(
+            new_configs_hash[:backoff_setup][:type],
+            new_configs_hash[:backoff_setup][:start]
+          ).intervals)
       end
     end
 
@@ -88,6 +101,12 @@ RSpec.describe(Take2::Configuration) do
       context 'when retry_condition_proc set to invalid value' do
         it 'raises ArgumentError' do
           expect { described_class.new(retry_condition_proc: {}) }.to(raise_error(ArgumentError))
+        end
+      end
+
+      context 'when backoff_setup has incorrect type' do
+        it 'raises ArgumentError' do
+          expect { described_class.new(backoff_setup: { type: :log }) }.to(raise_error(ArgumentError))
         end
       end
     end

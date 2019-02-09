@@ -271,6 +271,9 @@ Style/MethodCallWithArgsParentheses:
     - puts
     - error
     - run
+    - to
+    - describe
+    - eql
   Exclude:
     - Gemfile
 
@@ -842,7 +845,7 @@ Style/Proc:
   Enabled: true
 
 Style/RedundantBegin:
-  Enabled: true
+  Enabled: false
 
 Style/RedundantException:
   Enabled: true
@@ -1184,7 +1187,7 @@ Style/TrailingCommaInArrayLiteral:
 
 Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: comma
-  Enabled: true
+  Enabled: false
 
 Layout/SpaceInsideReferenceBrackets:
   EnforcedStyle: no_space

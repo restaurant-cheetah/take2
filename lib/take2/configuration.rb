@@ -1,8 +1,17 @@
 # frozen_string_literal: true
 
+require 'take2/backoff'
+
 module Take2
   class Configuration
-    CONFIG_ATTRS = [:retries, :retriable, :retry_proc, :retry_condition_proc, :time_to_sleep].freeze
+    CONFIG_ATTRS = [:retries,
+                    :retriable,
+                    :retry_proc,
+                    :retry_condition_proc,
+                    :time_to_sleep,
+                    :backoff_setup,
+                    :backoff_intervals].freeze
+
     attr_accessor(*CONFIG_ATTRS)
 
     def initialize(options = {})
@@ -16,7 +25,9 @@ module Take2
       ].freeze
       @retry_proc = proc {}
       @retry_condition_proc = proc { false }
-      @time_to_sleep = 3
+      @time_to_sleep = 0 # TODO: Soft deprecate time to sleep
+      @backoff_setup = { type: :constant, start: 3 }
+      @backoff_intervals = Backoff.new(*@backoff_setup.values).intervals
       # Overwriting the defaults
       validate_options(options, &setter)
     end
@@ -43,13 +54,26 @@ module Take2
           raise ArgumentError, "#{k} must be array of retriable errors" unless v.is_a?(Array)
         when :retry_proc, :retry_condition_proc
           raise ArgumentError, "#{k} must be Proc" unless v.is_a?(Proc)
+        when :backoff_setup
+          available_types = [:constant, :linear, :fibonacci, :exponential]
+          raise ArgumentError, 'Incorrect backoff type' unless available_types.include?(v[:type])
         end
         yield(k, v) if block_given?
       end
     end
 
     def setter
-      proc { |key, value| instance_variable_set(:"@#{key}", value) }
+      ->(key, value) {
+        if key == :backoff_setup
+          assign_backoff_intervals(value)
+        else
+          public_send("#{key}=", value)
+        end
+      }
+    end
+
+    def assign_backoff_intervals(backoff_setup)
+      @backoff_intervals = Backoff.new(backoff_setup[:type], backoff_setup[:start]).intervals
     end
   end
 end
