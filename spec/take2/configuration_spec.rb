@@ -30,7 +30,7 @@ RSpec.describe(Take2::Configuration) do
     end
 
     it 'has correct default value for time_to_sleep' do
-      expect(default.time_to_sleep).to(eql(3))
+      expect(default.time_to_sleep).to(eql(0))
     end
 
     it 'has correct default value for backoff_intervals' do

@@ -25,9 +25,8 @@ module Take2
       ].freeze
       @retry_proc = proc {}
       @retry_condition_proc = proc { false }
-      @time_to_sleep = 3
-      @start = @time_to_sleep # TODO: Soft deprecate time to sleep
-      @backoff_setup = { type: :constant, start: @start }
+      @time_to_sleep = 0 # TODO: Soft deprecate time to sleep
+      @backoff_setup = { type: :constant, start: 3 }
       @backoff_intervals = Backoff.new(*@backoff_setup.values).intervals
       # Overwriting the defaults
       validate_options(options, &setter)
