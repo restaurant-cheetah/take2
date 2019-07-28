@@ -13,22 +13,22 @@ module Take2
 
   class << self
     attr_accessor :configuration
-  end
 
-  def self.config
-    @configuration ||= Configuration.new
-  end
+    def config
+      @configuration ||= Configuration.new
+    end
 
-  def self.reset(options = {})
-    @configuration = Configuration.new(options)
-  end
+    def reset(options = {})
+      @configuration = Configuration.new(options)
+    end
 
-  def self.local_defaults(options)
-    configuration.validate_options(options)
-  end
+    def local_defaults(options)
+      configuration.validate_options(options)
+    end
 
-  def self.configure
-    yield(config) if block_given?
+    def configure
+      yield(config) if block_given?
+    end
   end
 
   module InstanceMethods
@@ -56,8 +56,16 @@ module Take2
     #     end
     #
     #   end
+    def call_api_with_retry(options = {}, &block)
+      self.class.call_api_with_retry(options, &block)
+    end
+
+    alias_method :with_retry, :call_api_with_retry
+  end
+
+  module ClassMethods
     def call_api_with_retry(options = {})
-      config = self.class.retriable_configuration
+      config = retriable_configuration
       config.merge!(Take2.local_defaults(options)) unless options.empty?
       tries ||= config[:retries]
       begin
@@ -74,25 +82,7 @@ module Take2
         raise e
       end
     end
-    alias_method :with_retry, :call_api_with_retry
 
-    private
-
-    def rest(config, tries)
-      seconds = if config[:time_to_sleep].to_f > 0
-        config[:time_to_sleep].to_f
-      else
-        next_interval(config[:backoff_intervals], config[:retries], tries)
-      end
-      sleep(seconds)
-    end
-
-    def next_interval(intervals, retries, current)
-      intervals[retries - current]
-    end
-  end
-
-  module ClassMethods
     # Sets number of retries.
     #
     # Example:
@@ -196,6 +186,19 @@ module Take2
     def response_status(response)
       return response.status if response.respond_to?(:status)
       response.status_code if response.respond_to?(:status_code)
+    end
+
+    def rest(config, tries)
+      seconds = if config[:time_to_sleep].to_f > 0
+        config[:time_to_sleep].to_f
+      else
+        next_interval(config[:backoff_intervals], config[:retries], tries)
+      end
+      sleep(seconds)
+    end
+
+    def next_interval(intervals, retries, current)
+      intervals[retries - current]
     end
   end
 end
