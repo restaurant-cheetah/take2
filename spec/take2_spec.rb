@@ -151,132 +151,130 @@ RSpec.describe(Take2) do
       raise error
     end
 
-    context 'when raised with non retriable error' do
-      let(:error) { StandardError.new('Release the Kraken!!') }
-
-      before(:each) { @tries = 0 }
-
-      it 're raises the original error' do
-        expect do
-          object.call_api_with_retry { wrath_the_gods_with error }
-        end.to(raise_error(error.class))
-      end
-
-      it 'is not retried' do
-        expect do
-          object.call_api_with_retry { wrath_the_gods_with error }
-        end.to(change { @tries }.from(0).to(1))
-      rescue
-        nil
-      end
-    end
-
-    context 'when raised with retriable error' do
+    describe 'class method' do
       let(:retriable_error) {  Net::HTTPRetriableError.new('Release the Kraken...many times!!', nil) }
-
       before(:each) { @tries = 0 }
-
+      it 'responds to the method' do
+        expect(klass).to respond_to(:call_api_with_retry)
+      end
       it 'retries correct number of times' do
         expect do
-          object.call_api_with_retry { wrath_the_gods_with retriable_error }
+          klass.call_api_with_retry { wrath_the_gods_with retriable_error }
         end.to(change { @tries }.from(0).to(klass.retriable_configuration[:retries] + 1))
       rescue
         nil
       end
-
-      it 'calls the retry proc' do
-        expect(klass.retriable_configuration[:retry_proc])
-          .to(receive(:call)
-          .exactly(klass.retriable_configuration[:retries]))
-        begin
-          object.call_api_with_retry { wrath_the_gods_with retriable_error }
-        rescue
-          nil
-        end
-      end
-
-      it 'calls the retry_condition proc' do
-        expect(klass.retriable_configuration[:retry_condition_proc])
-          .to(receive(:call)
-          .exactly(klass.retriable_configuration[:retries]))
-        begin
-          object.call_api_with_retry { wrath_the_gods_with retriable_error }
-        rescue
-          nil
-        end
-      end
-
-      # it 'sleeps the correct amount of time' do
-      #   allow_any_instance_of(Object).to(receive(:sleep).with(klass.retriable_configuration[:time_to_sleep]))
-      #   begin
-      #     object.call_api_with_retry { wrath_the_gods_with retriable_error }
-      #   rescue
-      #     nil
-      #   end
-      # end
-
-      it 're raises the original error' do
-        expect do
-          object.call_api_with_retry { wrath_the_gods_with retriable_error }
-        end.to(raise_error(retriable_error.class))
-      end
     end
+    describe 'instance method' do
+      context 'when raised with non retriable error' do
+        let(:error) { StandardError.new('Release the Kraken!!') }
 
-    context 'with custom options' do
-      let(:retriable_error)     { Net::HTTPRetriableError.new('Release the Kraken...many times!!', nil) }
-      let(:new_retriable_error) { IOError.new('You shall not PASS!') }
+        before(:each) { @tries = 0 }
 
-      before(:each) { @tries = 0 }
+        it 're raises the original error' do
+          expect do
+            object.call_api_with_retry { wrath_the_gods_with error }
+          end.to(raise_error(error.class))
+        end
 
-      it 'overwrites the :retries' do
-        expect do
-          object.call_api_with_retry(retries: 3) { wrath_the_gods_with retriable_error }
-        end.to(change { @tries }.from(0).to(4))
-      rescue
-        nil
-      end
-
-      it 'overwrites the :retry_proc' do
-        new_proc = proc { 1**1 }
-        expect(new_proc).to(receive(:call).exactly(klass.retriable_configuration[:retries]))
-        begin
-          object.call_api_with_retry(retry_proc: new_proc) { wrath_the_gods_with retriable_error }
+        it 'is not retried' do
+          expect do
+            object.call_api_with_retry { wrath_the_gods_with error }
+          end.to(change { @tries }.from(0).to(1))
         rescue
           nil
         end
       end
 
-      it 'overwrites the :retry_condition_proc' do
-        new_proc = proc { true }
-        expect(new_proc).to(receive(:call).exactly(klass.retriable_configuration[:retries]))
-        begin
-          object.call_api_with_retry(retry_condition_proc: new_proc) { wrath_the_gods_with retriable_error }
+      context 'when raised with retriable error' do
+        let(:retriable_error) {  Net::HTTPRetriableError.new('Release the Kraken...many times!!', nil) }
+
+        before(:each) { @tries = 0 }
+
+        it 'retries correct number of times' do
+          expect do
+            object.call_api_with_retry { wrath_the_gods_with retriable_error }
+          end.to(change { @tries }.from(0).to(klass.retriable_configuration[:retries] + 1))
         rescue
           nil
         end
+
+        it 'calls the retry proc' do
+          expect(klass.retriable_configuration[:retry_proc])
+            .to(receive(:call)
+            .exactly(klass.retriable_configuration[:retries]))
+          begin
+            object.call_api_with_retry { wrath_the_gods_with retriable_error }
+          rescue
+            nil
+          end
+        end
+
+        it 'calls the retry_condition proc' do
+          expect(klass.retriable_configuration[:retry_condition_proc])
+            .to(receive(:call)
+            .exactly(klass.retriable_configuration[:retries]))
+          begin
+            object.call_api_with_retry { wrath_the_gods_with retriable_error }
+          rescue
+            nil
+          end
+        end
+
+        it 're raises the original error' do
+          expect do
+            object.call_api_with_retry { wrath_the_gods_with retriable_error }
+          end.to(raise_error(retriable_error.class))
+        end
       end
 
-      # it 'overwrites the :time_to_sleep' do
-      #   allow_any_instance_of(Object).to(receive(:sleep).with(1.66))
-      #   begin
-      #     object.call_api_with_retry(time_to_sleep: 1.66) { wrath_the_gods_with retriable_error }
-      #   rescue
-      #     nil
-      #   end
-      # end
+      context 'with custom options' do
+        let(:retriable_error)     { Net::HTTPRetriableError.new('Release the Kraken...many times!!', nil) }
+        let(:new_retriable_error) { IOError.new('You shall not PASS!') }
 
-      it 'overwrites the :retriable' do
-        expect do
-          object.call_api_with_retry(retriable: [new_retriable_error]) { wrath_the_gods_with retriable_error }
-        end.to(change { @tries }.from(0).to(1))
-      rescue
-        nil
-      end
+        before(:each) { @tries = 0 }
 
-      it 'raises ArgumentError if there are invalid keys' do
-        expect do
-          object.call_api_with_retry(invalid_key: :nope) { wrath_the_gods_with retriable_error }
-        end.to(raise_error(ArgumentError))
+        it 'overwrites the :retries' do
+          expect do
+            object.call_api_with_retry(retries: 3) { wrath_the_gods_with retriable_error }
+          end.to(change { @tries }.from(0).to(4))
+        rescue
+          nil
+        end
+
+        it 'overwrites the :retry_proc' do
+          new_proc = proc { 1**1 }
+          expect(new_proc).to(receive(:call).exactly(klass.retriable_configuration[:retries]))
+          begin
+            object.call_api_with_retry(retry_proc: new_proc) { wrath_the_gods_with retriable_error }
+          rescue
+            nil
+          end
+        end
+
+        it 'overwrites the :retry_condition_proc' do
+          new_proc = proc { true }
+          expect(new_proc).to(receive(:call).exactly(klass.retriable_configuration[:retries]))
+          begin
+            object.call_api_with_retry(retry_condition_proc: new_proc) { wrath_the_gods_with retriable_error }
+          rescue
+            nil
+          end
+        end
+
+        it 'overwrites the :retriable' do
+          expect do
+            object.call_api_with_retry(retriable: [new_retriable_error]) { wrath_the_gods_with retriable_error }
+          end.to(change { @tries }.from(0).to(1))
+        rescue
+          nil
+        end
+
+        it 'raises ArgumentError if there are invalid keys' do
+          expect do
+            object.call_api_with_retry(invalid_key: :nope) { wrath_the_gods_with retriable_error }
+          end.to(raise_error(ArgumentError))
+        end
       end
     end
   end
