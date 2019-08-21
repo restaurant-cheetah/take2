@@ -156,6 +156,9 @@ RSpec.describe(Take2) do
       before(:each) { @tries = 0 }
       it 'responds to the method' do
         expect(klass).to respond_to(:call_api_with_retry)
+        expect(klass).to respond_to(:with_retry)
+        expect(klass.method(:with_retry).original_name).to eq(klass.method(:call_api_with_retry).original_name)
+        expect(klass.method(:with_retry).source_location).to eq(klass.method(:call_api_with_retry).source_location)
       end
       it 'retries correct number of times' do
         expect do
@@ -166,6 +169,12 @@ RSpec.describe(Take2) do
       end
     end
     describe 'instance method' do
+      it 'responds to the method' do
+        expect(object).to respond_to(:call_api_with_retry)
+        expect(object).to respond_to(:with_retry)
+        expect(object.method(:with_retry).original_name).to eq(object.method(:call_api_with_retry).original_name)
+        expect(object.method(:with_retry).source_location).to eq(object.method(:call_api_with_retry).source_location)
+      end
       context 'when raised with non retriable error' do
         let(:error) { StandardError.new('Release the Kraken!!') }
 

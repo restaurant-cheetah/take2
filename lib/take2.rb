@@ -83,6 +83,8 @@ module Take2
       end
     end
 
+    alias_method :with_retry, :call_api_with_retry
+
     # Sets number of retries.
     #
     # Example:
