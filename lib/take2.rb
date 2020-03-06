@@ -48,7 +48,7 @@ module Take2
     #     backoff_strategy type: :exponential, start: 3
     #
     #     def give_me_food
-    #       call_api_with_retry do
+    #       with_retry do
     #         # Some logic that might raise..
     #         # If it will raise retriable, magic happens.
     #         # If not the original error re raised

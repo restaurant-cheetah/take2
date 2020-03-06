@@ -18,9 +18,8 @@ gem install take2
 class KratosService
   include Take2
 
-  
   number_of_retries 3
-  
+
   # Could be configured globally or on class level.
   retriable_errors Net::HTTPRetriableError, Net::HTTPServerException
 
@@ -28,48 +27,42 @@ class KratosService
   retriable_condition proc { |error| error.response.code < 500 }
 
   # Defines callable code to run before next retry. Could be an out put to some logger.
-  on_retry proc { |error, tries| puts "#{self.name} - Retrying.. #{tries} of #{self.retriable_configuration[:retries]} (#{error})" }
-       
-  # The available strategies are: 
+  on_retry proc { |error, tries| puts "#{name} - Retrying.. #{tries} of #{retriable_configuration[:retries]} (#{error})" }
+
+  # The available strategies are:
   # type :constant, start: 2 => [2, 2, 2, 2 ... ]
   # type :linear, start: 3, factor: 2 => [3, 6, 12, 24 ... ]
   # type :fibonacci, start: 2 => [2, 3, 5, 8, 13 ... ]
-  # type :exponential, start: 3 => [3, 7, 12, 28, 47 ... ]    
+  # type :exponential, start: 3 => [3, 7, 12, 28, 47 ... ]
   backoff_strategy type: :fibonacci, start: 3
 
-  def call_boy
-    call_api_with_retry do
-      # Some logic that might raise..
-      # If it will raise retriable, magic happens.
-      # If not the original error re raised
+  class << self
+    def call_boy
+      with_retry do
+        # Some logic that might raise..
+        # If it will raise retriable, magic happens.
+        # If not the original error re raised
 
-      raise Net::HTTPRetriableError.new 'Release the Kraken...many times!!', nil
+        raise Net::HTTPRetriableError.new('Release the Kraken...many times!!', nil)
+      end
+    end
+
+    # Pass custom options per method call
+    # The class defaults will not be overwritten
+    def kill_baldur
+      with_retry(retries: 2, retriable: [IOError], retry_proc: proc {}, retry_condition_proc: proc {}) do
+        # Some logic that might raise..
+      end
     end
   end
-
-  # Pass custom options per method call
-  # The class defaults will not be overwritten
-  def kill_baldur
-    call_api_with_retry(retries: 2, retriable: [IOError], retry_proc: proc {}, retry_condition_proc: proc {}) do
-      # Some logic that might raise..
-    end
-  end
-
 end  
 
-KratosService.new.call_boy
+KratosService.call_boy
 #=> KratosService - Retrying.. 3 of 3 (Release the Kraken...many times!!)
 #=> KratosService - Retrying.. 2 of 3 (Release the Kraken...many times!!)
 #=> KratosService - Retrying.. 1 of 3 (Release the Kraken...many times!!)
 # After the retrying is done, original error re-raised  
 #=> Net::HTTPRetriableError: Release the Kraken...many times!!
-
-# Not wrapping with method
-KratosService.new.call_api_with_retry { 1 / 0 }
-
-# Or..
-Class.new { include Take2 }.new.call_api_with_retry { 1 / 0 }
-
 
 # Current configuration hash
 KratosService.retriable_configuration
@@ -91,7 +84,6 @@ Take2.configure do |config|
       IOError
   ].freeze
   config.retry_condition_proc = proc {false}
-  config.time_to_sleep        = nil
   config.retry_proc           = proc {Rails.logger.info "Retry message"}
   config.backoff_intervals    = Take2::Backoff.new(:linear, 1).intervals
 end
