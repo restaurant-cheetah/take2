@@ -69,7 +69,7 @@ module Take2
       config.merge!(Take2.local_defaults(options)) unless options.empty?
       tries ||= config[:retries]
       begin
-        yield
+        yield(tries)
       rescue => e
         if config[:retriable].map { |klass| e.class <= klass }.any?
           unless tries.zero? || config[:retry_condition_proc]&.call(e)
