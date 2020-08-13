@@ -6,10 +6,9 @@ RSpec.describe(Take2) do
   let!(:config) do
     Take2.configure do |c|
       c.retries               = 1
-      c.retriable             = [Net::HTTPServerException, Net::HTTPRetriableError].freeze
+      c.retriable             = [Errno::ECONNRESET, Net::HTTPRetriableError].freeze
       c.retry_condition_proc  = proc { false }
       c.retry_proc            = proc {}
-      c.time_to_sleep         = 0
       c.backoff_intervals     = Take2::Backoff.new(:linear, 1).intervals
     end
   end
@@ -33,10 +32,6 @@ RSpec.describe(Take2) do
 
     it 'has a default value for :retry_proc' do
       expect(subject[:retry_proc].call).to(eql(described_class.configuration[:retry_proc].call))
-    end
-
-    it 'has a default value for :time_to_sleep' do
-      expect(subject[:time_to_sleep]).to(eql(described_class.configuration[:time_to_sleep]))
     end
 
     it 'has a default value for :backoff_intervals' do
@@ -111,21 +106,6 @@ RSpec.describe(Take2) do
       end
     end
 
-    describe '.sleep_before_retry' do
-      context 'with valid argument' do
-        it 'sets the :sleep_before_retry attribute' do
-          klass.sleep_before_retry(3.5)
-          expect(subject[:time_to_sleep]).to(eql(3.5))
-        end
-      end
-
-      context 'with invalid argument' do
-        it 'raises ArgumentError' do
-          expect { klass.sleep_before_retry(-1) }.to(raise_error(ArgumentError))
-        end
-      end
-    end
-
     describe '.backoff_setup' do
       context 'with valid arguments' do
         it 'sets the backoff_intervals' do
@@ -154,12 +134,14 @@ RSpec.describe(Take2) do
     describe 'class method' do
       let(:retriable_error) {  Net::HTTPRetriableError.new('Release the Kraken...many times!!', nil) }
       before(:each) { @tries = 0 }
+
       it 'responds to the method' do
         expect(klass).to respond_to(:call_api_with_retry)
         expect(klass).to respond_to(:with_retry)
         expect(klass.method(:with_retry).original_name).to eq(klass.method(:call_api_with_retry).original_name)
         expect(klass.method(:with_retry).source_location).to eq(klass.method(:call_api_with_retry).source_location)
       end
+
       it 'retries correct number of times' do
         expect do
           klass.call_api_with_retry { wrath_the_gods_with retriable_error }
@@ -168,6 +150,7 @@ RSpec.describe(Take2) do
         nil
       end
     end
+
     describe 'instance method' do
       it 'responds to the method' do
         expect(object).to respond_to(:call_api_with_retry)
@@ -175,6 +158,7 @@ RSpec.describe(Take2) do
         expect(object.method(:with_retry).original_name).to eq(object.method(:call_api_with_retry).original_name)
         expect(object.method(:with_retry).source_location).to eq(object.method(:call_api_with_retry).source_location)
       end
+
       context 'when raised with non retriable error' do
         let(:error) { StandardError.new('Release the Kraken!!') }
 
