@@ -12,7 +12,6 @@ RSpec.describe(Take2::Configuration) do
 
     it 'has correct default retriable errors array' do
       expect(default.retriable).to(eql([
-        Net::HTTPServerException,
         Net::HTTPRetriableError,
         Errno::ECONNRESET,
         IOError,
@@ -29,10 +28,6 @@ RSpec.describe(Take2::Configuration) do
       expect(default.retry_condition_proc.call).to(eql(p.call))
     end
 
-    it 'has correct default value for time_to_sleep' do
-      expect(default.time_to_sleep).to(eql(0))
-    end
-
     it 'has correct default value for backoff_intervals' do
       expect(default.backoff_intervals).to eql Array.new(10, 3)
     end
@@ -46,14 +41,13 @@ RSpec.describe(Take2::Configuration) do
           retriable: [Net::HTTPRetriableError],
           retry_condition_proc: proc { true },
           retry_proc: proc { 2 * 2 },
-          time_to_sleep: 0,
           backoff_setup: { type: :linear, start: 3 }
         }
       end
 
       let!(:new_configuration) { described_class.new(new_configs_hash).to_hash }
 
-      [:retries, :retriable, :retry_proc, :retry_condition_proc, :time_to_sleep].each do |key|
+      [:retries, :retriable, :retry_proc, :retry_condition_proc].each do |key|
         it "sets the #{key} key" do
           if new_configs_hash[key].respond_to?(:call)
             expect(new_configuration[key].call).to(eql(new_configs_hash[key].call))
@@ -77,12 +71,6 @@ RSpec.describe(Take2::Configuration) do
         it 'raises ArgumentError' do
           expect { described_class.new(retries: -1) }.to(raise_error(ArgumentError))
           expect { described_class.new(retries: 0) }.to(raise_error(ArgumentError))
-        end
-      end
-
-      context 'when time_to_sleep set to invalid value' do
-        it 'raises ArgumentError' do
-          expect { described_class.new(time_to_sleep: -1) }.to(raise_error(ArgumentError))
         end
       end
 

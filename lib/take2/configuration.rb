@@ -8,7 +8,6 @@ module Take2
                     :retriable,
                     :retry_proc,
                     :retry_condition_proc,
-                    :time_to_sleep,
                     :backoff_setup,
                     :backoff_intervals].freeze
 
@@ -18,14 +17,12 @@ module Take2
       # Defaults
       @retries = 3
       @retriable = [
-        Net::HTTPServerException,
         Net::HTTPRetriableError,
         Errno::ECONNRESET,
         IOError,
       ].freeze
       @retry_proc = proc {}
       @retry_condition_proc = proc { false }
-      @time_to_sleep = 0 # TODO: Soft deprecate time to sleep
       @backoff_setup = { type: :constant, start: 3 }
       @backoff_intervals = Backoff.new(*@backoff_setup.values).intervals
       # Overwriting the defaults
@@ -48,8 +45,6 @@ module Take2
         case k
         when :retries
           raise ArgumentError, "#{k} must be positive integer" unless v.is_a?(Integer) && v.positive?
-        when :time_to_sleep
-          raise ArgumentError, "#{k} must be positive number" unless (v.is_a?(Integer) || v.is_a?(Float)) && v >= 0
         when :retriable
           raise ArgumentError, "#{k} must be array of retriable errors" unless v.is_a?(Array)
         when :retry_proc, :retry_condition_proc
