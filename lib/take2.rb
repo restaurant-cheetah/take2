@@ -107,9 +107,9 @@ module Take2
     #     retriable_errors Net::HTTPRetriableError, Errno::ECONNRESET
     #   end
     # Arguments:
-    #   errors: List of retiable errors
+    #   errors: List of retriable errors
     def retriable_errors(*errors)
-      message = 'All retriable errors must be StandardError decendants'
+      message = 'All retriable errors must be StandardError descendants'
       raise ArgumentError, message unless errors.all? { |e| e <= StandardError }
       self.retriable = errors
     end
@@ -143,15 +143,6 @@ module Take2
       self.retry_proc = proc
     end
 
-    def sleep_before_retry(seconds)
-      unless (seconds.is_a?(Integer) || seconds.is_a?(Float)) && seconds.positive?
-        raise ArgumentError, 'Must be positive numer'
-      end
-      puts "DEPRECATION MESSAGE - The sleep_before_retry method is softly deprecated in favor of backoff_stategy \r
-       where the time to sleep is a starting point on the backoff intervals. Please implement it instead."
-      self.time_to_sleep = seconds
-    end
-
     # Sets the backoff strategy
     #
     # Example:
@@ -164,6 +155,7 @@ module Take2
     def backoff_strategy(options)
       available_types = [:constant, :linear, :fibonacci, :exponential]
       raise ArgumentError, 'Incorrect backoff type' unless available_types.include?(options[:type])
+      self.backoff_setup = options
       self.backoff_intervals = Backoff.new(options[:type], options[:start]).intervals
     end
 
@@ -179,9 +171,8 @@ module Take2
     attr_accessor(*Take2::Configuration::CONFIG_ATTRS)
 
     def set_defaults
-      config = Take2.configuration.to_hash
-      Take2::Configuration::CONFIG_ATTRS.each do |attr|
-        instance_variable_set("@#{attr}", config[attr])
+      Take2.config.to_hash.each do |k, v|
+        instance_variable_set("@#{k}", v)
       end
     end
 
@@ -191,11 +182,7 @@ module Take2
     end
 
     def rest(config, tries)
-      seconds = if config[:time_to_sleep].to_f > 0
-        config[:time_to_sleep].to_f
-      else
-        next_interval(config[:backoff_intervals], config[:retries], tries)
-      end
+      seconds = next_interval(config[:backoff_intervals], config[:retries], tries)
       sleep(seconds)
     end
 
