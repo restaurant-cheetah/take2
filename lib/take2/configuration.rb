@@ -8,7 +8,6 @@ module Take2
                     :retriable,
                     :retry_proc,
                     :retry_condition_proc,
-                    :backoff_setup,
                     :backoff_intervals].freeze
 
     attr_accessor(*CONFIG_ATTRS)
@@ -23,10 +22,9 @@ module Take2
       ].freeze
       @retry_proc = proc {}
       @retry_condition_proc = proc { false }
-      @backoff_setup = { type: :constant, start: 3 }
-      @backoff_intervals = Backoff.new(*@backoff_setup.values).intervals
-      # Overwriting the defaults
-      validate_options(options, &setter)
+      @backoff_intervals = Backoff.new(:constant, 3).intervals
+
+      merge_options!(options)
     end
 
     def to_hash
@@ -39,7 +37,15 @@ module Take2
       public_send(value)
     end
 
-    def validate_options(options)
+    def merge_options!(options = {})
+      validate!(options)
+      options.each do |key, value|
+        public_send("#{key}=", value)
+      end
+      self
+    end
+
+    def validate!(options)
       options.each do |k, v|
         raise ArgumentError, "#{k} is not a valid configuration" unless CONFIG_ATTRS.include?(k)
         case k
@@ -47,28 +53,13 @@ module Take2
           raise ArgumentError, "#{k} must be positive integer" unless v.is_a?(Integer) && v.positive?
         when :retriable
           raise ArgumentError, "#{k} must be array of retriable errors" unless v.is_a?(Array)
+        when :backoff_intervals
+          raise ArgumentError, "#{k} must be array of retriable errors" unless v.is_a?(Array)
+          raise ArgumentError, "#{k} size must be greater or equal to number of retries" unless v.size >= retries
         when :retry_proc, :retry_condition_proc
           raise ArgumentError, "#{k} must be Proc" unless v.is_a?(Proc)
-        when :backoff_setup
-          available_types = [:constant, :linear, :fibonacci, :exponential]
-          raise ArgumentError, 'Incorrect backoff type' unless available_types.include?(v[:type])
         end
-        yield(k, v) if block_given?
       end
-    end
-
-    def setter
-      ->(key, value) {
-        if key == :backoff_setup
-          assign_backoff_intervals(value)
-        else
-          public_send("#{key}=", value)
-        end
-      }
-    end
-
-    def assign_backoff_intervals(backoff_setup)
-      @backoff_intervals = Backoff.new(backoff_setup[:type], backoff_setup[:start]).intervals
     end
   end
 end

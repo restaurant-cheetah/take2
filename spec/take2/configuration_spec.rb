@@ -41,13 +41,13 @@ RSpec.describe(Take2::Configuration) do
           retriable: [Net::HTTPRetriableError],
           retry_condition_proc: proc { true },
           retry_proc: proc { 2 * 2 },
-          backoff_setup: { type: :linear, start: 3 }
+          backoff_intervals: [1, 2, 3, 4, 5]
         }
       end
 
       let!(:new_configuration) { described_class.new(new_configs_hash).to_hash }
 
-      [:retries, :retriable, :retry_proc, :retry_condition_proc].each do |key|
+      [:retries, :retriable, :retry_proc, :retry_condition_proc, :backoff_intervals].each do |key|
         it "sets the #{key} key" do
           if new_configs_hash[key].respond_to?(:call)
             expect(new_configuration[key].call).to(eql(new_configs_hash[key].call))
@@ -55,14 +55,6 @@ RSpec.describe(Take2::Configuration) do
             expect(new_configuration[key]).to(eql(new_configs_hash[key]))
           end
         end
-      end
-
-      it 'sets the backoff_intervals correctly' do
-        expect(new_configuration[:backoff_intervals])
-          .to eql(Take2::Backoff.new(
-            new_configs_hash[:backoff_setup][:type],
-            new_configs_hash[:backoff_setup][:start]
-          ).intervals)
       end
     end
 
@@ -92,9 +84,9 @@ RSpec.describe(Take2::Configuration) do
         end
       end
 
-      context 'when backoff_setup has incorrect type' do
+      context 'when backoff_intervals has incorrect type' do
         it 'raises ArgumentError' do
-          expect { described_class.new(backoff_setup: { type: :log }) }.to(raise_error(ArgumentError))
+          expect { described_class.new(backoff_intervals: 1) }.to(raise_error(ArgumentError))
         end
       end
     end

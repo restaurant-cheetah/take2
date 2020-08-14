@@ -23,11 +23,14 @@ module Take2
     end
 
     def local_defaults(options)
-      configuration.validate_options(options)
+      configuration.validate!(options)
     end
 
     def configure
-      yield(config) if block_given?
+      if block_given?
+        yield(config)
+        config.validate!(config.to_hash)
+      end
     end
   end
 
@@ -155,7 +158,6 @@ module Take2
     def backoff_strategy(options)
       available_types = [:constant, :linear, :fibonacci, :exponential]
       raise ArgumentError, 'Incorrect backoff type' unless available_types.include?(options[:type])
-      self.backoff_setup = options
       self.backoff_intervals = Backoff.new(options[:type], options[:start]).intervals
     end
 
