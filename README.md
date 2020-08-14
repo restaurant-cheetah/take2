@@ -3,9 +3,9 @@
 ![Gem](https://img.shields.io/gem/dt/take2.svg)
 ![GitHub last commit](https://img.shields.io/github/last-commit/restaurant-cheetah/take2.svg)
 ![Gem](https://img.shields.io/gem/v/take2.svg)  
-Define rules for retrying behavior.  
-Yield block of code into the public api of the take2.  
-Things getting take two :)
+1. Define rules for retrying behavior.  
+2. Yield block of code into the with_retry method.  
+3. Things getting take two :)
 
 ## Install
 
@@ -15,7 +15,7 @@ gem install take2
 ## Examples
 
 ```ruby
-class KratosService
+class Service
   include Take2
 
   number_of_retries 3
@@ -37,7 +37,7 @@ class KratosService
   backoff_strategy type: :fibonacci, start: 3
 
   class << self
-    def call_boy
+    def call
       with_retry do
         # Some logic that might raise..
         # If it will raise retriable, magic happens.
@@ -49,7 +49,7 @@ class KratosService
 
     # Pass custom options per method call
     # The class defaults will not be overwritten
-    def kill_baldur
+    def read(file)
       with_retry(retries: 2, retriable: [IOError], retry_proc: proc {}, retry_condition_proc: proc {}) do
         # Some logic that might raise..
       end
@@ -57,7 +57,7 @@ class KratosService
   end
 end  
 
-KratosService.call_boy
+Service.call
 #=> KratosService - Retrying.. 3 of 3 (Release the Kraken...many times!!)
 #=> KratosService - Retrying.. 2 of 3 (Release the Kraken...many times!!)
 #=> KratosService - Retrying.. 1 of 3 (Release the Kraken...many times!!)
@@ -65,7 +65,7 @@ KratosService.call_boy
 #=> Net::HTTPRetriableError: Release the Kraken...many times!!
 
 # Current configuration hash
-KratosService.retriable_configuration
+Service.retriable_configuration
 
 ```
 
@@ -82,8 +82,8 @@ Take2.configure do |config|
       Errno::ECONNRESET,
       IOError
   ].freeze
-  config.retry_condition_proc = proc {false}
-  config.retry_proc           = proc {Rails.logger.info "Retry message"}
+  config.retry_condition_proc = proc { false }
+  config.retry_proc           = proc { Rails.logger.info "Retry message" }
   config.backoff_intervals    = Take2::Backoff.new(:linear, 1).intervals
 end
 ```
