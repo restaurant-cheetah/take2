@@ -38,8 +38,7 @@ module Take2
     end
 
     def merge_options!(options = {})
-      validate!(options)
-      options.each do |key, value|
+      validate!(options).each do |key, value|
         public_send("#{key}=", value)
       end
       self

@@ -89,6 +89,12 @@ RSpec.describe(Take2::Configuration) do
           expect { described_class.new(backoff_intervals: 1) }.to(raise_error(ArgumentError))
         end
       end
+
+      context 'when backoff_intervals size smaller then number of retries' do
+        it 'raises ArgumentError' do
+          expect { described_class.new(backoff_intervals: [1]) }.to(raise_error(ArgumentError))
+        end
+      end
     end
   end
 end
