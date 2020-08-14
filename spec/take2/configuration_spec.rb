@@ -11,11 +11,7 @@ RSpec.describe(Take2::Configuration) do
     end
 
     it 'has correct default retriable errors array' do
-      expect(default.retriable).to(eql([
-        Net::HTTPRetriableError,
-        Errno::ECONNRESET,
-        IOError,
-      ].freeze))
+      expect(default.retriable).to(eql([]))
     end
 
     it 'has default proc for retry_proc' do

@@ -15,11 +15,7 @@ module Take2
     def initialize(options = {})
       # Defaults
       @retries = 3
-      @retriable = [
-        Net::HTTPRetriableError,
-        Errno::ECONNRESET,
-        IOError,
-      ].freeze
+      @retriable = []
       @retry_proc = proc {}
       @retry_condition_proc = proc { false }
       @backoff_intervals = Backoff.new(:constant, 3).intervals
